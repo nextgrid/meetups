@@ -1,11 +1,12 @@
 const firebase = require('firebase');
 require('firebase/firestore');
+require('dotenv').config();
 
 firebase.initializeApp({
-    apiKey: 'AIzaSyDluzjvUCu1OChPdX4kRQGWQHea7YTYoPY',
-    authDomain: 'valid-ship-252510.firebaseapp.com',
-    databaseURL: "https://wdlltst.firebaseio.com",
-    projectId: 'valid-ship-252510'
+    apiKey: process.env.FIREBASE_API_KEY,
+    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+    databaseURL: process.env.FIREBASE_DB_URL,
+    projectId: "valid-ship-252510"
 });
 
 var db = firebase.firestore();
