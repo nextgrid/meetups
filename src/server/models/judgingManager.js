@@ -22,7 +22,7 @@ class JudgingManager {
             const desc = descriptions[i];
             const agent = new TfAgent(desc.accountId);
 
-            const modelUrl = await repo.get_model_bin_signed_url(desc.model);
+            const modelUrl = await repo.get_model_bin_url(desc.model);
             
             await agent.loadModel(modelUrl)
                 .then(() => {

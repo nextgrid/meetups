@@ -9,7 +9,8 @@ class TfAgent {
     }
 
     async loadModel(url) {
-        this.model = await tf.loadLayersModel(url);
+        const handler = tf.io.browserHTTPRequest(url);
+        this.model = await tf.loadLayersModel(handler);
     }
 
     predict(example) {

@@ -1,4 +1,7 @@
 const firebase = require('firebase');
+const unzipper = require('unzipper');
+const etl = require('etl');
+const streamifier = require('streamifier');
 const { Storage } = require("@google-cloud/storage");
 require('firebase/firestore');
 require('dotenv').config();
@@ -18,27 +21,50 @@ const storage = new Storage({
 const bucketName = process.env.CLOUD_MODELS_BUCKET;
 const bucket = storage.bucket(bucketName);
 
+/** Unpacks binModel (it has to be in .zip format)
+ * and uploads it to GCS.
+ */
 exports.add_model_bin = async function(fileName, binModel, onFinish, onError) {
-    const gcsFileName = `${Date.now()}-${fileName}`;
-    const file = bucket.file(gcsFileName);
+    const folderName = `${Date.now()}-${fileName}`;
+    var jsonPath = '';
 
-    const stream = file.createWriteStream({
-        metadata: {
-            contentType: binModel.mimetype
-        }
-    });
+    await streamifier.createReadStream(binModel.buffer)
+        .pipe(unzipper.Parse())
+        .on("entry", async (entry) => {
+            const fileName = entry.path;
+            const fileContent = await entry.buffer();
+            
+            const gcsFileName = `${folderName}/${fileName}`;
 
-    stream.on('error', onError);
-    stream.on('finish', () => onFinish(gcsFileName));
-
-    stream.end(binModel.buffer);
+            if (gcsFileName.endsWith("json"))
+                jsonPath = gcsFileName;
+            
+            const file = bucket.file(gcsFileName);
+            const stream = file.createWriteStream({
+                metadata: {
+                    contentType: gcsFileName.endsWith("json") 
+                        ? "application/json"
+                        : "application/octet-stream"
+                }
+            });
+        
+            stream.on('error', (err) => console.error(`Could not upload file ${gcsFileName}`, err));
+            stream.on('finish', async () => {
+                await bucket.file(gcsFileName).makePublic();
+                console.log(`Uploaded file ${gcsFileName}`)
+            });
+            stream.end(fileContent);
+        })
+        .promise()
+        .then(() => onFinish(jsonPath), onError);
 }
 
 exports.add_model_desc = function(accountId, taskId, model) {
     db.collection("models").add({
         accountId,
         taskId,
-        model
+        model,
+        date: Date.now()
     })
         .then(function(docRef) {
             console.log("Document written with ID: " + docRef.id);
@@ -58,6 +84,10 @@ exports.get_model_bin = async function(modelName) {
                 apiResponse: data[1],
             }
         });
+}
+
+exports.get_model_bin_url = function(modelName) {
+    return `https://storage.googleapis.com/${bucketName}/${modelName}`;
 }
 
 exports.get_model_bin_signed_url = async function(modelName) {
