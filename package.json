@@ -28,8 +28,8 @@
     "webpack-node-externals": "^1.7.2"
   },
   "scripts": {
-    "start": "node ./dist/server.js",
-    "build": "rm -rf dist && webpack --mode development --config webpack.server.config.js && webpack --mode development"
+    "start": "node ./src/server/server.js",
+    "build": "rm -rf dist && webpack --mode development"
   },
   "eslintConfig": {
     "extends": "react-app"

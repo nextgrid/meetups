@@ -8,8 +8,8 @@ var tasks_controller = require('./controllers/tasksController');
 var judging_controller = require('./controllers/judgingController');
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }))
-app.use(express.static(path.join(__dirname, 'dist')));
+app.use(express.urlencoded({ extended: true }));
+app.use('/static', express.static(path.resolve(__dirname, '../..', 'dist')), express.static(path.resolve(__dirname, '../..', 'public')));
 
 // -- Tasks
 // body e.g.
@@ -30,7 +30,7 @@ app.get('/api', (req, res) => {
 
 app.get('*', (req, res) => {
   res.sendFile(INDEX_FILE, {
-    root: __dirname
+    root: __dirname + '../../../dist/'
   });
 });
 
