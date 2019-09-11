@@ -15,9 +15,10 @@ const storage = new Storage({
     projectId: process.env.GCLOUD_PROJECT
 });
 
+const bucketName = process.env.CLOUD_MODELS_BUCKET;
+const bucket = storage.bucket(bucketName);
+
 exports.add_model_bin = async function(fileName, binModel, onFinish, onError) {
-    const bucketName = process.env.CLOUD_BUCKET;
-    const bucket = storage.bucket(bucketName);
     const gcsFileName = `${Date.now()}-${fileName}`;
     const file = bucket.file(gcsFileName);
 
@@ -33,7 +34,7 @@ exports.add_model_bin = async function(fileName, binModel, onFinish, onError) {
     stream.end(binModel.buffer);
 }
 
-exports.add_model = function(accountId, taskId, model) {
+exports.add_model_desc = function(accountId, taskId, model) {
     db.collection("models").add({
         accountId,
         taskId,
@@ -47,8 +48,45 @@ exports.add_model = function(accountId, taskId, model) {
         });
 }
 
-exports.get_models_by_account_and_task = function(accountId, taskId) {
-    return db.collection("models")
+exports.get_model_bin = async function(modelName) {
+    const file = bucket.file(modelName);
+
+    return await file.get()
+        .then(function(data) {
+            return {
+                model: data[0],
+                apiResponse: data[1],
+            }
+        });
+}
+
+exports.get_model_bin_signed_url = async function(modelName) {
+    const options = {
+        version: 'v4',
+        action: 'read',
+        expires: Date.now() + 5 * 60 * 1000, // 5 minutes
+    };
+
+    const [url] = await bucket
+        .file(modelName)
+        .getSignedUrl(options);
+
+    return url;
+}
+
+exports.get_last_models_desc_by_task = async function(taskId) {
+    // TODO: Get last models per accoundId by task
+    return await db.collection("models")
+        .where("taskId", "==", taskId)
+        .get()
+        .then(collectEntries)
+        .catch(function(error) {
+            console.error("Error geting models: ", error);
+        });
+}
+
+exports.get_models_desc_by_account_and_task = async function(accountId, taskId) {
+    return await db.collection("models")
         .where("accountId", "==", accountId)
         .where("taskId", "==", taskId)
         .get()
@@ -58,8 +96,8 @@ exports.get_models_by_account_and_task = function(accountId, taskId) {
         });
 }
 
-exports.get_all_models = function() {
-    return db.collection("models")
+exports.get_all_models_desc = async function() {
+    return await db.collection("models")
         .get()
         .then(collectEntries)
         .catch(function(error) {

@@ -6,7 +6,12 @@ exports.send_model_post = function(req, res) {
         req.body.modelName, 
         req.files['model'][0], 
         onFinish = (genFileName) => {
-            repo.add_model(req.body.accountId, req.body.taskId, genFileName);
+            repo.add_model_desc(
+                parseInt(req.body.accountId), 
+                parseInt(req.body.taskId), 
+                genFileName
+            );
+            
             res.status(200).send("Model succesfully added.");
         },
         onError = (err) => {
@@ -20,7 +25,7 @@ exports.latest_model_get = function(req, res) {
 }
 
 exports.models_by_account_and_task_get = function(req, res) {
-    repo.get_models_by_account_and_task(
+    repo.get_models_desc_by_account_and_task(
         parseInt(req.query.accountId), 
         parseInt(req.query.taskId)
     )
@@ -28,6 +33,6 @@ exports.models_by_account_and_task_get = function(req, res) {
 }
 
 exports.all_models_get = function(req, res) {
-    repo.get_all_models()
+    repo.get_all_models_desc()
         .then(data => res.json(data));
 }
