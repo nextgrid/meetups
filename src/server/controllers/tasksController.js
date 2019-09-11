@@ -1,8 +1,18 @@
 var repo = require("../data_access/firebaseRepository");
 
 exports.send_model_post = function(req, res) {
-    repo.add_model(req.body.accountId, req.body.taskId, req.body.model);
-    res.status(200).send("Model succesfully added.");
+    console.log(req.body);
+    repo.add_model_bin(
+        req.body.modelName, 
+        req.files['model'][0], 
+        onFinish = (genFileName) => {
+            repo.add_model(req.body.accountId, req.body.taskId, genFileName);
+            res.status(200).send("Model succesfully added.");
+        },
+        onError = (err) => {
+            res.status(500).send(`Could not add model. ${err}`);
+        }
+    );
 }
 
 exports.latest_model_get = function(req, res) {
