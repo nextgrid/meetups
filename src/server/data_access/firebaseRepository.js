@@ -1,8 +1,9 @@
 const firebase = require('firebase');
 const unzipper = require('unzipper');
-const etl = require('etl');
+const shell = require('shelljs')
 const streamifier = require('streamifier');
 const { Storage } = require("@google-cloud/storage");
+
 require('firebase/firestore');
 require('dotenv').config();
 
@@ -102,6 +103,46 @@ exports.get_model_bin_signed_url = async function(modelName) {
         .getSignedUrl(options);
 
     return url;
+}
+
+exports.download_model_folder = async function(modelName) {
+    var download_file = async (name) => {
+        var index = name.lastIndexOf('/');
+        var pref_path = name.slice(0, index);
+
+        shell.mkdir('-p', './' + pref_path);
+
+        return await bucket
+            .file(name)
+            .download({ destination: name })
+            .then(() => true)
+            .catch(err => {
+                console.error(`Error while downloading file ${name}. `, err);
+                return false;
+            });
+    }
+
+    var files = await bucket 
+        .getFiles();
+
+    if (files.length == 0) {
+        console.error(`Error while accessing bucket data. Files list is empty.`);
+        return false;
+    }
+
+    files = files[0];
+
+    for (var i = 0; i < files.length; ++i) {
+        const file = files[i];
+        if (file.name.search(modelName) != -1) {
+            if (!await download_file(file.name)) {
+                console.error(`Error while downloading file ${file.name}`);
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
 
 exports.get_last_models_desc_by_task = async function(taskId) {

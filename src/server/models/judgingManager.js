@@ -21,10 +21,10 @@ class JudgingManager {
         for (var i = 0; i < descriptions.length; ++i) {
             const desc = descriptions[i];
             const agent = new TfAgent(desc.accountId);
+            const model_path = desc.model.substring(0, desc.model.lastIndexOf("/"));
 
-            const modelUrl = await repo.get_model_bin_url(desc.model);
-            
-            await agent.loadModel(modelUrl)
+            await repo.download_model_folder(model_path);
+            await agent.loadModel(`file://${desc.model}`, 'keras')
                 .then(() => {
                     this.agents.push(agent);
                 })
@@ -53,11 +53,11 @@ class JudgingManager {
 
             this.agents.forEach(agent => {
                 const inputData = this.testInputs[i];
-                var predRes = agent.predict(inputData);
+                //var predRes = agent.predict(inputData);
 
                 roundRes.push({
                     accountId: agent.modelAuthorId,
-                    res: predRes,
+                    res: {},
                 });
             });
 
