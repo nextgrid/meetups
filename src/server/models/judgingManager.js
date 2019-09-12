@@ -1,5 +1,5 @@
 var { TfAgent } = require('./tfAgent');
-var repo = require('../data_access/firebaseRepository');
+var repo = require('../data_access/googleRepository');
 
 class JudgingManager {
     constructor() {

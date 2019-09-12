@@ -1,4 +1,4 @@
-var repo = require("../data_access/firebaseRepository");
+var repo = require("../data_access/googleRepository");
 
 exports.send_model_post = function(req, res) {
     console.log(req.body);
