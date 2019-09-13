@@ -35,9 +35,29 @@ app.get('/api/tasks/all_models', tasks_controller.all_models_get);
 // -- Judge
 app.get('/api/judge/compound_judge/', judging_controller.judge_task_compound_get);
 
-// -- Other
-app.get('/api', (req, res) => {
-  res.send('Test endpoint message');
+// Get next task
+app.get('/api/task/:id', (req, res) => {
+  const {id} = req.params;
+  if (id % 2) {
+    res.json({
+      label: 'dog',
+      url: 'static/dog' + (Math.floor(id / 2) + 1) + '.jpg'
+    });
+  } else {
+    res.json({
+      label: 'cat',
+      url: 'static/cat' + (id / 2) + '.jpg'
+    });
+  }
+});
+
+// Get answer for a given task
+app.get('/api/answers/:id', (req, res) => {
+  const answers = [];
+  for (let i = 0; i < 5; i++) {
+    answers.push(Math.random() * 2 > 1 ? 'dog' : 'cat');
+  }
+  res.json(answers);
 });
 
 app.get('*', (req, res) => {
