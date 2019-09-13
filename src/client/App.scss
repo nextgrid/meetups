@@ -1,0 +1,51 @@
+.app {
+  .left {
+    padding-top: 30px;
+    float: left;
+    width: 25%;
+    min-height: 1px;
+
+    .answer {
+      text-align: center;
+      padding-bottom: 10px;
+    }
+
+    .correct {
+      color: green;
+    }
+
+    .wrong {
+      color: red;
+    }
+  }
+  .middle {
+    float: left;
+    width: 50%;
+
+    .round {
+      font-size: 100px;
+      text-align: center;
+    }
+    .task-pic {
+      margin-left: auto;
+      margin-right: auto;
+      display: block;
+
+      max-height: 50vh;
+      max-width: 50vw;
+    }
+    .label {
+      text-align: center;
+    }
+  }
+  .right {
+    float: right;
+    width: 25%;
+    min-height: 1px;
+  }
+  .next-round-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+  }
+}
