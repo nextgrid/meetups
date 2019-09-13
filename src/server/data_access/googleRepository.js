@@ -24,6 +24,7 @@ const bucket = storage.bucket(bucketName);
 
 /** Unpacks binModel (it has to be in .zip format)
  * and uploads it to GCS.
+ * TODO Refactor it - take out unzipping logic; make it add_file
  */
 exports.add_model_bin = async function(fileName, binModel, onFinish, onError) {
     const folderName = `${Date.now()}-${fileName}`;
@@ -75,8 +76,8 @@ exports.add_model_desc = function(accountId, taskId, model) {
         });
 }
 
-exports.get_model_bin = async function(modelName) {
-    const file = bucket.file(modelName);
+exports.get_file = async function(fileName) {
+    const file = bucket.file(fileName);
 
     return await file.get()
         .then(function(data) {
@@ -87,11 +88,11 @@ exports.get_model_bin = async function(modelName) {
         });
 }
 
-exports.get_model_bin_url = function(modelName) {
-    return `https://storage.googleapis.com/${bucketName}/${modelName}`;
+exports.get_file_url = function(fileName) {
+    return `https://storage.googleapis.com/${bucketName}/${fileName}`;
 }
 
-exports.get_model_bin_signed_url = async function(modelName) {
+exports.get_file_signed_url = async function(fileName) {
     const options = {
         version: 'v4',
         action: 'read',
@@ -99,13 +100,16 @@ exports.get_model_bin_signed_url = async function(modelName) {
     };
 
     const [url] = await bucket
-        .file(modelName)
+        .file(fileName)
         .getSignedUrl(options);
 
     return url;
 }
 
-exports.download_model_folder = async function(modelName) {
+/**
+ * TODO: Refactor it to get_folder_stream or make it downloading files to indexeddb
+ */
+exports.download_folder = async function(path) {
     var download_file = async (name) => {
         var index = name.lastIndexOf('/');
         var pref_path = name.slice(0, index);
@@ -132,17 +136,18 @@ exports.download_model_folder = async function(modelName) {
 
     files = files[0];
 
+    res = true;
     for (var i = 0; i < files.length; ++i) {
         const file = files[i];
-        if (file.name.search(modelName) != -1) {
+        if (file.name.search(path) != -1) {
             if (!await download_file(file.name)) {
                 console.error(`Error while downloading file ${file.name}`);
-                return false;
+                res = false;
             }
         }
     }
 
-    return true;
+    return res;
 }
 
 exports.get_last_models_desc_by_task = async function(taskId) {
