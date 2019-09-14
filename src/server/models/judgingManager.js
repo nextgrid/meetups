@@ -32,11 +32,10 @@ class JudgingManager {
     async _fetchModels(taskId) {
         this.agents = [];
 
-        const descriptions = await repo.get_last_models_desc_by_task(taskId)
-            .then(descriptions => descriptions);
+        const descriptions = await repo
+            .get_last_models_desc_by_task(taskId);
 
-        for (var i = 0; i < descriptions.length; ++i) {
-            const desc = descriptions[i];
+        for (var desc of descriptions) {
             const agent = new TfAgent(desc.accountId);
             const model_path = desc.model.substring(0, desc.model.lastIndexOf("/"));
 
@@ -56,79 +55,61 @@ class JudgingManager {
      * @param {int} taskId 
      */
     async _fetchTests(taskId) {
-        this.testInputs = [];
-
         const remotePath = `tests/task${taskId}/input/`;
         const localPath = `${TMP_PATH}/${remotePath}`;
 
+        const width = 64;
+        const height = 64;
+
         await repo.download_folder(remotePath, TMP_PATH);
-
-        const fileNames = fs.readdirSync(localPath);
-        for (var i = 0; i < fileNames.length; ++i) {
-            const filePath = `${localPath}${fileNames[i]}`;
-
-            // 128/128 size is used for first task
-            const width = 64;
-            const height = 64;
-
-            const initImg = (await Image.load(filePath))
-                .resize({ width, height });
-
-            const img = Image.createFrom(initImg, { 
-                alpha: 0
-            })
-                .setChannel(0, initImg.getChannel(0, { keepAlpha: false }))
-                .setChannel(1, initImg.getChannel(1, { keepAlpha: false }))
-                .setChannel(2, initImg.getChannel(2, { keepAlpha: false }));
-            
-            const tensor = tf.tensor(img.data, [
-                1,
-                img.width,
-                img.height,
-                img.channels, 
-            ])
-                .asType('float32')
-                .div(255);
-
-            this.testInputs.push(tensor);
-        }
+        this.testInputs = await this._createTensorsFromImages(localPath, width, height);
     }
 
-    /** Produces array of shape (n, m), where
-     * n - number of rounds
-     * m - number of models
-     * which holds the following structure
-     * {
-     *   accountId - id of participants' group
-     *   predRes - array with predictions
-     * }
+    async _createTensorsFromImages(path, destWidth, destHeight) {
+        return await Promise.all(
+            fs.readdirSync(path)
+                .map(async (fileName) => 
+                    this._createTensorFromImage(
+                        await this._loadImage(`${path}/${fileName}`, destWidth, destHeight)
+                    )
+                )
+        );
+    }
+
+    async _loadImage(filePath, destWidth, destHeight) {
+        const initImg = (await Image.load(filePath))
+            .resize({ 
+                width: destWidth, 
+                height: destHeight 
+            });
+
+        return Image.createFrom(initImg, { alpha: 0 })
+            .setChannel(0, initImg.getChannel(0, { keepAlpha: false }))
+            .setChannel(1, initImg.getChannel(1, { keepAlpha: false }))
+            .setChannel(2, initImg.getChannel(2, { keepAlpha: false }));
+    }
+
+    _createTensorFromImage(img) {
+        return tf.tensor(img.data, [
+            1,
+            img.width,
+            img.height,
+            img.channels, 
+        ])
+            .asType('float32')
+            .div(255);
+    }
+
+    /** 
+     * Produces results for each of the models per round.
      */
-    async judge(rounds) {
-        var res = [];
-
-        for (var i = 0; i < this.testInputs.length; ++i) {
-            var roundRes = [];
-            const inputData = this.testInputs[i];
-
-            const buf = await inputData.buffer();
-            console.log(buf);
-
-            for (var j = 0; j < this.agents.length; ++j) {
-                const agent = this.agents[j];
-                
-                var predRes = agent.predict(inputData).dataSync();
-                console.log(predRes);
-
-                roundRes.push({
-                    accountId: agent.modelAuthorId,
-                    predRes,
-                });
-            }
-
-            res.push(roundRes);
-        }
-
-        return res;
+    judge() {
+        return this.testInputs.map((testData) => (
+            this.agents.map((agent) => ({
+                accountId: agent.modelAuthorId,
+                res: agent.predict(testData).dataSync(),
+            }))
+        ));
     }
 }
 
