@@ -37,15 +37,15 @@ class JudgingManager {
 
         for (var desc of descriptions) {
             const agent = new TfAgent(desc.accountId);
-            const model_path = desc.model.substring(0, desc.model.lastIndexOf("/"));
+            const model_path = desc.modelName.substring(0, desc.modelName.lastIndexOf("/"));
 
             await repo.download_folder(model_path, TMP_PATH);
-            await agent.loadModel(`file://${TMP_PATH}/${desc.model}`, 'keras')
+            await agent.loadModel(`file://${TMP_PATH}/${desc.modelName}`, 'keras')
                 .then(() => {
                     this.agents.push(agent);
                 })
                 .catch(err => {
-                    console.error(`Error while loading model named '${desc.model}'`, err);
+                    console.error(`Error while loading model named '${desc.modelName}'`, err);
                 });
         }
     }

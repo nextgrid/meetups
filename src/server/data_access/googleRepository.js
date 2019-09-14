@@ -22,57 +22,77 @@ const storage = new Storage({
 const bucketName = process.env.CLOUD_MODELS_BUCKET;
 const bucket = storage.bucket(bucketName);
 
-/** Unpacks binModel (it has to be in .zip format)
- * and uploads it to GCS.
- * TODO Refactor it - take out unzipping logic; make it add_file
+/**
+ * Extracts and uploads compressed model to GCS.
+ * @param {file} zipFile Compressed file with Keras/TF model.
+ * @param {string} modelName Name of the zip file.
  */
-exports.add_model_bin = async function(fileName, binModel, onFinish, onError) {
-    const folderName = `${Date.now()}-${fileName}`;
+exports.add_model_zip = async function(zipFile, modelName) {
     var jsonPath = '';
 
-    await streamifier.createReadStream(binModel.buffer)
+    return await streamifier.createReadStream(zipFile.buffer)
         .pipe(unzipper.Parse())
         .on("entry", async (entry) => {
-            const fileName = entry.path;
-            const fileContent = await entry.buffer();
-            
-            const gcsFileName = `${folderName}/${fileName}`;
+            const destFileName = `${modelName}/${entry.path}`;
 
-            if (gcsFileName.endsWith("json"))
-                jsonPath = gcsFileName;
-            
-            const file = bucket.file(gcsFileName);
-            const stream = file.createWriteStream({
-                metadata: {
-                    contentType: gcsFileName.endsWith("json") 
-                        ? "application/json"
-                        : "application/octet-stream"
-                }
-            });
-        
-            stream.on('error', (err) => console.error(`Could not upload file ${gcsFileName}`, err));
-            stream.on('finish', async () => {
-                await bucket.file(gcsFileName).makePublic();
-                console.log(`Uploaded file ${gcsFileName}`)
-            });
-            stream.end(fileContent);
+            if (entry.path.endsWith("json")) {
+                jsonPath = destFileName;
+            }
+
+            await exports.add_file(entry, destFileName);            
         })
         .promise()
-        .then(() => onFinish(jsonPath), onError);
+        .then(() => jsonPath);
 }
 
-exports.add_model_desc = function(accountId, taskId, model) {
-    db.collection("models").add({
-        accountId,
-        taskId,
-        model,
-        date: Date.now()
-    })
-        .then(function(docRef) {
-            console.log("Document written with ID: " + docRef.id);
+/**
+ * Uploads single file to GCS.
+ * @param {file} file File to upload.
+ * @param {string} destFileName Destination file name (with path).
+ */
+exports.add_file = async function(file, destFileName) {
+    bucket.file(destFileName)
+        .createWriteStream({
+            metadata: {
+                contentType: destFileName.endsWith("json") 
+                    ? "application/json"
+                    : "application/octet-stream"
+            }
+        })
+        .on('error', (err) => console.error(`Could not upload file ${destFileName}`, err))
+        .on('finish', async () => {
+            await bucket.file(destFileName).makePublic();
+            console.log(`Uploaded file ${destFileName}`)
+        })
+        .end(await file.buffer());
+}
+
+exports.add_last_model_desc = function(accountId, taskId, modelName) {
+    const docName = `acc${accountId}-task${taskId}`;
+
+    db.collection("last_models")
+        .doc(docName)
+        .set({
+            accountId,
+            taskId,
+            modelName,
+            date: Date.now()
+        })
+        .then(function() {
+            console.log(`Edited/created document ${docName}`);
         })
         .catch(function(error) {
-            console.error("Error adding document: ", error);
+            console.error("Error while editing document. ", error);
+        });
+}
+
+exports.get_last_models_desc_by_task = async function(taskId) {
+    return await db.collection("last_models")
+        .where("taskId", "==", taskId)
+        .get()
+        .then(snapshot => snapshot.docs.map(doc => doc.data()))
+        .catch(function(error) {
+            console.error("Error getting models: ", error);
         });
 }
 
@@ -137,8 +157,7 @@ exports.download_folder = async function(path, destination) {
     files = files[0];
 
     res = true;
-    for (var i = 0; i < files.length; ++i) {
-        const file = files[i];
+    for (var file of files) {
         if (file.name.search(path) != -1 && !file.name.endsWith('/')) {
             if (!await download_file(file.name)) {
                 console.error(`Error while downloading file ${file.name}`);
@@ -148,41 +167,4 @@ exports.download_folder = async function(path, destination) {
     }
 
     return res;
-}
-
-exports.get_last_models_desc_by_task = async function(taskId) {
-    // TODO: Get last models per accoundId by task
-    return await db.collection("models")
-        .where("taskId", "==", taskId)
-        .get()
-        .then(collectEntries)
-        .catch(function(error) {
-            console.error("Error geting models: ", error);
-        });
-}
-
-exports.get_models_desc_by_account_and_task = async function(accountId, taskId) {
-    return await db.collection("models")
-        .where("accountId", "==", accountId)
-        .where("taskId", "==", taskId)
-        .get()
-        .then(collectEntries)
-        .catch(function(error) {
-            console.error("Error getting models: ", error);
-        });
-}
-
-exports.get_all_models_desc = async function() {
-    return await db.collection("models")
-        .get()
-        .then(collectEntries)
-        .catch(function(error) {
-            console.error("Error getting models: ", error);
-        });
-}
-
-collectEntries = function(snapshot) {
-    var docs = [];
-    snapshot.forEach(doc => docs.push(doc.data()));
-    return docs;
 }
