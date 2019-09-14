@@ -5,6 +5,7 @@ const fs = require('fs');
 const tf = require('@tensorflow/tfjs-node');
 const repo = require('../data_access/googleRepository');
 
+const TMP_PATH = 'files/';
 
 class JudgingManager {
     constructor() {
@@ -39,8 +40,8 @@ class JudgingManager {
             const agent = new TfAgent(desc.accountId);
             const model_path = desc.model.substring(0, desc.model.lastIndexOf("/"));
 
-            await repo.download_folder(model_path);
-            await agent.loadModel(`file://${desc.model}`, 'keras')
+            await repo.download_folder(model_path, TMP_PATH);
+            await agent.loadModel(`file://${TMP_PATH}/${desc.model}`, 'keras')
                 .then(() => {
                     this.agents.push(agent);
                 })
@@ -58,9 +59,9 @@ class JudgingManager {
         this.testInputs = [];
 
         const remotePath = `tests/task${taskId}/input/`;
-        const localPath = `${remotePath}`;
+        const localPath = `${TMP_PATH}/${remotePath}`;
 
-        await repo.download_folder(remotePath);
+        await repo.download_folder(remotePath, TMP_PATH);
 
         const fileNames = fs.readdirSync(localPath);
         for (var i = 0; i < fileNames.length; ++i) {

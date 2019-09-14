@@ -109,16 +109,16 @@ exports.get_file_signed_url = async function(fileName) {
 /**
  * TODO: Refactor it to get_folder_stream or make it downloading files to indexeddb
  */
-exports.download_folder = async function(path) {
+exports.download_folder = async function(path, destination) {
     var download_file = async (name) => {
         var index = name.lastIndexOf('/');
         var pref_path = name.slice(0, index);
 
-        shell.mkdir('-p', './' + pref_path);
+        shell.mkdir('-p', `./${destination}/${pref_path}`);
 
         return await bucket
             .file(name)
-            .download({ destination: name })
+            .download({ destination: `${destination}/${name}` })
             .then(() => true)
             .catch(err => {
                 console.error(`Error while downloading file ${name}. `, err);
@@ -139,7 +139,7 @@ exports.download_folder = async function(path) {
     res = true;
     for (var i = 0; i < files.length; ++i) {
         const file = files[i];
-        if (file.name.search(path) != -1) {
+        if (file.name.search(path) != -1 && !file.name.endsWith('/')) {
             if (!await download_file(file.name)) {
                 console.error(`Error while downloading file ${file.name}`);
                 res = false;
