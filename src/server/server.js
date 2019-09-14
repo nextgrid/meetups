@@ -17,23 +17,17 @@ app.use(BodyParser.json());
 app.use(BodyParser.urlencoded({ extended: true }));
 app.use('/static', express.static(path.resolve(__dirname, '../..', 'dist')), express.static(path.resolve(__dirname, '../..', 'public')));
 
-// -- Tasks
-// body e.g.
-// { "accountId": 2, "taskId": 3, "model": "--trained model json--" }
-var modelUpload = multer.fields([
+
+var sendModelParams = multer.fields([
   { name: "modelName", maxCount: 1 },
-  { name: "model", maxCount: 1 },
+  { name: "model", maxCount: 1 },     // ZIP file
   { name: "accountId", maxCount: 1 },
   { name: "taskId", maxCount: 1 }
 ]);
-app.post('/api/tasks/send_model', modelUpload, tasks_controller.send_model_post);
-app.get('/api/tasks/latest_model', tasks_controller.latest_model_get);
-// params: accountId, taskId
-app.get('/api/tasks/models_by_acc_and_task', tasks_controller.models_by_account_and_task_get);
-app.get('/api/tasks/all_models', tasks_controller.all_models_get);
+app.post('/api/task/send_model', sendModelParams, tasks_controller.send_model_post);
 
-// -- Judge
-app.get('/api/judge/compound_judge/', judging_controller.judge_task_compound_get);
+// Params: taskId
+app.get('/api/judge/judge/', judging_controller.judge_task_get);
 
 // Get next task
 app.get('/api/task/:id', (req, res) => {

@@ -20,10 +20,6 @@ exports.send_model_post = function(req, res) {
     );
 }
 
-exports.latest_model_get = function(req, res) {
-    res.status(404).send("Not implemented.");
-}
-
 exports.models_by_account_and_task_get = function(req, res) {
     repo.get_models_desc_by_account_and_task(
         parseInt(req.query.accountId), 
