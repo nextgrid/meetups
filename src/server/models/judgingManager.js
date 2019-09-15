@@ -62,16 +62,18 @@ class JudgingManager {
         const height = 64;
 
         await repo.download_folder(remotePath, TMP_PATH);
-        this.testInputs = await this._createTensorsFromImages(localPath, width, height);
+        this.testInputs = await this._createInputData(localPath, remotePath, width, height);
     }
 
-    async _createTensorsFromImages(path, destWidth, destHeight) {
+    async _createInputData(localPath, remotePath, destWidth, destHeight) {
         return await Promise.all(
-            fs.readdirSync(path)
-                .map(async (fileName) => 
-                    this._createTensorFromImage(
-                        await this._loadImage(`${path}/${fileName}`, destWidth, destHeight)
-                    )
+            fs.readdirSync(localPath)
+                .map(async (fileName) => ({
+                        data: this._createTensorFromImage(
+                            await this._loadImage(`${localPath}/${fileName}`, destWidth, destHeight)
+                        ),
+                        url: await repo.get_file_signed_url(`${remotePath}${fileName}`)
+                    })
                 )
         );
     }
@@ -104,12 +106,13 @@ class JudgingManager {
      * Produces results for each of the models per round.
      */
     judge() {
-        return this.testInputs.map((testData) => (
-            this.agents.map((agent) => ({
+        return this.testInputs.map((test) => ({
+            testUrl: test.url,
+            res: this.agents.map((agent) => ({
                 accountId: agent.modelAuthorId,
-                res: agent.predict(testData).dataSync(),
+                res: agent.predict(test.data).dataSync()
             }))
-        ));
+        }));
     }
 }
 
