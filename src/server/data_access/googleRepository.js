@@ -7,20 +7,13 @@ const { Storage } = require("@google-cloud/storage");
 require('firebase/firestore');
 require('dotenv').config();
 
-firebase.initializeApp({
-    apiKey: process.env.FIREBASE_API_KEY,
-    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-    databaseURL: process.env.FIREBASE_DB_URL,
-    projectId: process.env.GCLOUD_PROJECT
-});
+const dbConfig = { projectId: process.env.GCLOUD_PROJECT };
 
-var db = firebase.firestore();
-const storage = new Storage({
-    projectId: process.env.GCLOUD_PROJECT
-});
+firebase.initializeApp(dbConfig);
 
-const bucketName = process.env.CLOUD_MODELS_BUCKET;
-const bucket = storage.bucket(bucketName);
+const storage = new Storage(dbConfig);
+const db = firebase.firestore();
+const bucket = storage.bucket(process.env.CLOUD_MODELS_BUCKET);
 
 /**
  * Extracts and uploads compressed model to GCS.
