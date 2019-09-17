@@ -39,8 +39,7 @@
   },
   "scripts": {
     "start": "node ./src/server/server.js",
-    "build": "rm -rf dist && webpack --mode development",
-    "buildw": "rem -rf dist && webpack --mode development"
+    "build": "rm -rf dist && cp ./src/tfjs_fix/weights_loader.js ./node_modules/@tensorflow/tfjs-core/dist/io/ && webpack --mode development"
   },
   "eslintConfig": {
     "extends": "react-app"
