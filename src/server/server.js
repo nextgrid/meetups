@@ -32,15 +32,17 @@ app.get('/api/judge/judge/', judging_controller.judge_task_get);
 // Get next task
 app.get('/api/task/:id', (req, res) => {
   const {id} = req.params;
+  const pathPref = 'static/tests/task1/input';
+
   if (id % 2) {
     res.json({
       label: 'dog',
-      url: 'static/dog' + (Math.floor(id / 2) + 1) + '.jpg'
+      url: `${pathPref}/dog` + (Math.floor(id / 2) + 1) + '.jpg'
     });
   } else {
     res.json({
       label: 'cat',
-      url: 'static/cat' + (id / 2) + '.jpg'
+      url: `${pathPref}/cat` + (id / 2) + '.jpg'
     });
   }
 });

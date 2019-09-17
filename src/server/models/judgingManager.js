@@ -37,16 +37,14 @@ class JudgingManager {
 
         for (var desc of descriptions) {
             const agent = new TfAgent(desc.accountId);
-            const model_path = desc.modelName.substring(0, desc.modelName.lastIndexOf("/"));
-
-            await repo.download_folder(model_path, TMP_PATH);
-            await agent.loadModel(`file://${TMP_PATH}/${desc.modelName}`, 'keras')
+            await agent.loadModel(repo.get_file_url(desc.modelName), 'keras')
                 .then(() => {
                     this.agents.push(agent);
                 })
                 .catch(err => {
                     console.error(`Error while loading model named '${desc.modelName}'`, err);
-                });
+                }
+            );
         }
     }
 
@@ -55,13 +53,11 @@ class JudgingManager {
      * @param {int} taskId 
      */
     async _fetchTests(taskId) {
-        const remotePath = `tests/task${taskId}/input/`;
-        const localPath = `${TMP_PATH}/${remotePath}`;
-
+        const localPath = `public/tests/task${taskId}/input/`;
+        const remotePath = `static/tests/task${taskId}/input/`;
         const width = 64;
         const height = 64;
 
-        await repo.download_folder(remotePath, TMP_PATH);
         this.testInputs = await this._createInputData(localPath, remotePath, width, height);
     }
 
@@ -69,12 +65,11 @@ class JudgingManager {
         return await Promise.all(
             fs.readdirSync(localPath)
                 .map(async (fileName) => ({
-                        data: this._createTensorFromImage(
-                            await this._loadImage(`${localPath}/${fileName}`, destWidth, destHeight)
-                        ),
-                        url: await repo.get_file_signed_url(`${remotePath}${fileName}`)
-                    })
-                )
+                    data: this._createTensorFromImage(
+                        await this._loadImage(`${localPath}/${fileName}`, destWidth, destHeight)
+                    ),
+                    url: `${remotePath}/${fileName}`
+                }))
         );
     }
 

@@ -102,7 +102,7 @@ exports.get_file = async function(fileName) {
 }
 
 exports.get_file_url = function(fileName) {
-    return `https://storage.googleapis.com/${bucketName}/${fileName}`;
+    return `https://storage.googleapis.com/${process.env.CLOUD_MODELS_BUCKET}/${fileName}`;
 }
 
 exports.get_file_signed_url = async function(fileName) {
