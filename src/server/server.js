@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const BodyParser = require('body-parser');
 const Multer = require('multer');
+const nodeFetch = require('node-fetch');
 
 const multer = Multer({
   storage: Multer.MemoryStorage
@@ -17,6 +18,7 @@ app.use(BodyParser.json());
 app.use(BodyParser.urlencoded({ extended: true }));
 app.use('/static', express.static(path.resolve(__dirname, '../..', 'dist')), express.static(path.resolve(__dirname, '../..', 'public')));
 
+global.fetch = nodeFetch;
 
 var sendModelParams = multer.fields([
   { name: "modelName", maxCount: 1 },

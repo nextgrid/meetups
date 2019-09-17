@@ -1,5 +1,4 @@
 const tf = require('@tensorflow/tfjs-node');
-const sfetch = require('slim-fetch');
 
 /**
  *   Wraps tfjs model loading and prediction.
@@ -17,11 +16,9 @@ class TfAgent {
      */
     async loadModel(url, modelType) {
         if (modelType == 'keras') {
-            this.model = await tf.loadLayersModel(url, { fetchFunc: sfetch })
-                .catch(err => console.error('Error while loading layers model', error));
+            this.model = await tf.loadLayersModel(url);  
         } else if (modelType == 'tf') {
-            this.model = await tf.loadGraphModel(url, { fetchFunc: sfetch })
-                .catch(err => console.error('Error while loading graph model', error));;
+            this.model = await tf.loadGraphModel(url);
         } else {
             throw new Error("Unsupported modelType. Should be 'keras' or 'tf'.");
         }
