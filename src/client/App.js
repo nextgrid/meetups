@@ -1,6 +1,120 @@
 import React from 'react';
 import axios from 'axios';
 import './App.scss';
+import { makeStyles } from '@material-ui/core/styles';
+
+import Header from './components/Header.js';
+import RankingCard from './components/RankingCard.js';
+import TestCard from './components/TestCard.js';
+import ProgressCard from './components/ProgressCard.js';
+
+import SendIcon from '@material-ui/icons/Send';
+import Button from '@material-ui/core/Button';
+
+import { ThemeProvider } from '@material-ui/styles';
+import { createMuiTheme } from '@material-ui/core/styles';
+import { red } from '@material-ui/core/colors';
+
+const theme = createMuiTheme({
+  palette: {
+    type: 'dark',
+    primary: { main: red[500] },
+    secondary: { main: '#11cb5f' }
+  },
+});
+
+const useStyles = makeStyles(theme => ({
+  margin: {
+    margin: theme.spacing(1),
+  },
+  extendedIcon: {
+    marginLeft: theme.spacing(1),
+  },
+  header: {
+    color: "#FFFFFF",
+    fontSize: 40,
+    marginLeft: 300,
+  },
+  leftPanel: {
+    margin: 5,
+    marginLeft: 20,
+    height: "100%",
+  },
+  rightPanel: {
+    margin: 5
+  },
+  row: {
+    width: "100%", 
+    display: 'flex', 
+    justifyContent: 'center'
+  }
+}));
+
+/* Props: goToNextRound */
+function Round(props) {
+  const classes = useStyles();
+
+  return (
+    <div>
+      <div 
+        className="row"
+        style={{
+          marginLeft: "17%",
+          marginRight: "17%",
+          paddingTop: "2%"
+        }}>
+        <Header style={classes.header} part={1}/>
+      </div>
+      <div 
+        className="row" 
+        style={{
+          width: "100%", 
+          display: 'flex', 
+          justifyContent: 'center',
+        }}
+      >
+        <div className="col-4">
+          <RankingCard 
+            className={classes.root} 
+            style={{
+              height: 600
+            }}
+            round={props.round}
+            results={props.results}
+          />            
+        </div>
+        <div className="col-4">
+          <TestCard 
+          style={{
+            height: 600
+          }}
+            src={props.src}
+            title={props.title}
+            subheader={props.subheader}/>
+        </div>
+      </div>
+      <div 
+        className="row" 
+        style={{
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          marginTop: 30
+        }}
+      >
+        <Button 
+          variant="outlined" 
+          size="large" 
+          color="primary"
+          onClick={props.goToNextRound}
+        >
+          Next round
+          <SendIcon className={classes.extendedIcon} />
+        </Button>
+      </div>
+    </div>
+  )
+}
 
 class App extends React.Component {
   state = {
@@ -77,43 +191,46 @@ class App extends React.Component {
   render() {
     const { round, answers } = this.state;
 
-    if (round === 0) {
-      return (
-        <div className='app'>
-          <div className='left' />
-          <div className='middle'>
-            <h1 className='round'>Welcome to the event</h1>
-            <img className='task-pic' src='/static/placeholder.png' />
+    return (
+      <ThemeProvider theme={theme}>
+        {round == 0
+        ? (
+          <div style={{
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            paddingTop: "15%"
+          }}>
+            <ProgressCard 
+              isDone={!!answers} 
+              onStart={this.goToNextRound}
+            />
           </div>
-          <div className='right' />
-          {answers
-            && <button className='next-round-btn' onClick={this.goToNextRound}>Next round</button>}
-        </div>
-      );
-    } else {
-      const { url, label, percentiles, points, diff } = answers[round - 1];
-      percentiles.reverse();
 
-      return (
-        <div className='app'>
-          <div className='left'>
-            {percentiles.map(({ id, result }) => (
-              <div style={{ color: this.setColor(result) }} key={id}>
-                <h1>Team {id}</h1>
-                <h1>{Math.floor(result * 99 + 1)}%</h1>
-              </div>
-            ))}
-          </div>
-          <div className='middle'>
-            <h1 className='round'>Round {round}</h1>
-            <img className='task-pic' src={url} />
-            <h1 className='label'>{label}</h1>
-          </div>
-          <div className='right' />
-          <button className='next-round-btn' onClick={this.goToNextRound}>Next round</button>
-        </div>
-      );
-    }
+        )
+        : (() => {
+          const { url, label, percentiles, points, diff } = answers[round - 1];
+          percentiles.reverse();
+
+          return (
+            <Round 
+              title={label}
+              subheader="TBA"
+              src={url}
+              round={round}
+              results={
+                percentiles.map(({ id, result }) => ({
+                  team: `Team ${id}`,
+                  percentage: Math.floor(result * 99 + 1)
+                }))
+              }
+              goToNextRound={this.goToNextRound}
+            />
+          );
+        })()
+        }
+      </ThemeProvider>
+    )
   }
 }
 
