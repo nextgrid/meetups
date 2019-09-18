@@ -176,18 +176,6 @@ class App extends React.Component {
     this.setState({ round: this.state.round + 1 });
   };
 
-  setColor = (result) => {
-    const peak = 200;
-    result *= 2;
-    if (result > 1) {
-      const red = Math.floor(peak * (2 - result));
-      return `rgb(${red}, ${peak}, 0)`;
-    } else {
-      const green = Math.floor(peak * result);
-      return `rgb(${peak}, ${green}, 0)`;
-    }
-  };
-
   render() {
     const { round, answers } = this.state;
 
