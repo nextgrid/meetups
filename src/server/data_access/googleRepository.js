@@ -20,22 +20,28 @@ const bucket = storage.bucket(process.env.CLOUD_MODELS_BUCKET);
  * @param {file} zipFile Compressed file with Keras/TF model.
  * @param {string} modelName Name of the zip file.
  */
-exports.add_model_zip = async function(zipFile, modelName) {
+exports.add_model_zip = function(zipFile, modelName) {
     var jsonPath = '';
 
-    return await streamifier.createReadStream(zipFile.buffer)
-        .pipe(unzipper.Parse())
-        .on("entry", async (entry) => {
-            const destFileName = `${modelName}/${entry.path}`;
+    return new Promise((resolve, reject) => {
+        streamifier.createReadStream(zipFile.buffer)
+            .pipe(unzipper.Parse())
+            .on("entry", async (entry) => {
+                const destFileName = `${modelName}/${entry.path}`;
 
-            if (entry.path.endsWith("json")) {
-                jsonPath = destFileName;
-            }
+                if (entry.path.endsWith("json")) {
+                    jsonPath = destFileName;
+                }
 
-            await exports.add_file(entry, destFileName);            
-        })
-        .promise()
-        .then(() => jsonPath);
+                await exports.add_file(entry, destFileName)
+                    .catch((err) => console.error(`Could not upload file ${destFileName}`, err));
+
+                await bucket.file(destFileName).makePublic();
+                console.log(`Uploaded file ${destFileName}`);
+            })
+            .on('finish', () => resolve(jsonPath))
+            .on('error', reject)
+    });
 }
 
 /**
@@ -44,38 +50,33 @@ exports.add_model_zip = async function(zipFile, modelName) {
  * @param {string} destFileName Destination file name (with path).
  */
 exports.add_file = async function(file, destFileName) {
-    bucket.file(destFileName)
-        .createWriteStream({
-            metadata: {
-                contentType: destFileName.endsWith("json") 
-                    ? "application/json"
-                    : "application/octet-stream"
-            }
-        })
-        .on('error', (err) => console.error(`Could not upload file ${destFileName}`, err))
-        .on('finish', async () => {
-            await bucket.file(destFileName).makePublic();
-            console.log(`Uploaded file ${destFileName}`)
-        })
-        .end(await file.buffer());
+    const buffer = await file.buffer();
+
+    return new Promise((resolve, reject) => {
+        bucket.file(destFileName)
+            .createWriteStream({
+                metadata: {
+                    contentType: destFileName.endsWith("json") 
+                        ? "application/json"
+                        : "application/octet-stream"
+                }
+            })
+            .on('finish', resolve)
+            .on('error', reject)
+            .end(buffer);
+    });
 }
 
 exports.add_last_model_desc = async function(accountId, taskId, modelName) {
     const docName = `acc${accountId}-task${taskId}`;
 
-    await db.collection("last_models")
+    return db.collection("last_models")
         .doc(docName)
         .set({
             accountId,
             taskId,
             modelName,
             date: Date.now()
-        })
-        .then(function() {
-            console.log(`Edited/created document ${docName}`);
-        })
-        .catch(function(error) {
-            console.error("Error while editing document. ", error);
         });
 }
 
@@ -83,10 +84,7 @@ exports.get_last_models_desc_by_task = async function(taskId) {
     return await db.collection("last_models")
         .where("taskId", "==", taskId)
         .get()
-        .then(snapshot => snapshot.docs.map(doc => doc.data()))
-        .catch(function(error) {
-            console.error("Error getting models: ", error);
-        });
+        .then(snapshot => snapshot.docs.map(doc => doc.data()));
 }
 
 exports.get_account_id_from_auth_code = async function(code) {
@@ -101,10 +99,7 @@ exports.get_account_id_from_auth_code = async function(code) {
                 return null;
             }
             return ids[0];
-        })
-        .catch(function(error) {
-            console.log("Error while getting accountId from auth code")
-        })
+        });
 }
 
 exports.get_file = async function(fileName) {
@@ -141,20 +136,15 @@ exports.get_file_signed_url = async function(fileName) {
  * TODO: Refactor it to get_folder_stream or make it downloading files to indexeddb
  */
 exports.download_folder = async function(path, destination) {
-    var download_file = async (name) => {
+    var download_file = (name) => {
         var index = name.lastIndexOf('/');
         var pref_path = name.slice(0, index);
 
         shell.mkdir('-p', `./${destination}/${pref_path}`);
 
-        return await bucket
+        return bucket
             .file(name)
-            .download({ destination: `${destination}/${name}` })
-            .then(() => true)
-            .catch(err => {
-                console.error(`Error while downloading file ${name}. `, err);
-                return false;
-            });
+            .download({ destination: `${destination}/${name}` });
     }
 
     var files = await bucket 

@@ -23,7 +23,12 @@ exports.send_model_post = async function(req, res) {
         return;
     }
 
-    const accountId = await repo.get_account_id_from_auth_code(authCode);
+    const accountId = await repo.get_account_id_from_auth_code(authCode)
+        .catch(err => {
+            console.error("Error while getting accountId from auth code.", err);
+            res.status(500).send("Error while getting accountId from auth code.");
+            throw err;
+        });
 
     if (!accountId) {
         res.status(403).send("Could not upload model - invalid auth code.");
@@ -31,13 +36,23 @@ exports.send_model_post = async function(req, res) {
     }
 
     jsonPath = await repo.add_model_zip(zipFile, modelName)
-        .catch(err => res.status(500).send(`Could not add model. ${err}`));
+        .catch(err => {
+            console.error("Error while uploading model.", err);
+            res.status(500).send("Error while uploading model.");
+            throw err;
+        });
 
     await repo.add_last_model_desc(
         parseInt(accountId), 
         parseInt(taskId), 
         jsonPath
-    );
+    )
+        .catch(err => {
+            console.error("Error while creating model metadata.", err);
+            res.status(500).send("Error while creating model metadata.");
+            throw err;
+        });
 
+    console.log(`Model succesfully added.`);
     res.status(200).send("Model succesfully added.");
 }

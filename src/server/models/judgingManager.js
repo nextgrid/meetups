@@ -5,13 +5,10 @@ const fs = require('fs');
 const tf = require('@tensorflow/tfjs-node');
 const repo = require('../data_access/googleRepository');
 
-const TMP_PATH = 'files/';
-
 class JudgingManager {
     constructor() {
         this.agents = [];
         this.testInputs = [];
-        this.testOutputs = [];
     }
 
     /** Loads data needed for judging; returns promise.
@@ -33,7 +30,10 @@ class JudgingManager {
         this.agents = [];
 
         const descriptions = await repo
-            .get_last_models_desc_by_task(taskId);
+            .get_last_models_desc_by_task(taskId)
+            .catch(err => {
+                console.error("Error models metadata.", err);
+            });
 
         for (var desc of descriptions) {
             const agent = new TfAgent(desc.accountId);
