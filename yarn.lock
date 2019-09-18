@@ -8239,7 +8239,7 @@ node-fetch@^1.0.1:
     encoding "^0.1.11"
     is-stream "^1.0.1"
 
-node-fetch@^2.2.0, node-fetch@^2.3.0:
+node-fetch@^2.2.0, node-fetch@^2.3.0, node-fetch@^2.6.0:
   version "2.6.0"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.0.tgz#e633456386d4aa55863f676a7ab0daa8fdecb0fd"
   integrity sha512-8dG4H5ujfvFiqDmVu9fQ5bOHUC15JMjMY/Zumv26oOvvVJjM67KF8koCWIabKQ1GJIa9r2mMZscBq/TbdOcmNA==
@@ -11079,6 +11079,11 @@ slice-ansi@^2.1.0:
     ansi-styles "^3.2.0"
     astral-regex "^1.0.0"
     is-fullwidth-code-point "^2.0.0"
+
+slim-fetch@^2.3.4:
+  version "2.3.4"
+  resolved "https://registry.yarnpkg.com/slim-fetch/-/slim-fetch-2.3.4.tgz#a093b61aad38dfd9312f16708481bf44a78c89fb"
+  integrity sha512-sjWlEITpN1RdJwPmQ8z8ZFlCTQy7UfZeAu2lfZQlR1MvCndBQEZblT1pKp+udJq2Y1EJrvAWRfVJ5uiSR+N+pA==
 
 snakeize@^0.1.0:
   version "0.1.0"
