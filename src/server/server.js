@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const BodyParser = require('body-parser');
 const Multer = require('multer');
+const nodeFetch = require('node-fetch');
 
 const multer = Multer({
   storage: Multer.MemoryStorage
@@ -17,6 +18,7 @@ app.use(BodyParser.json());
 app.use(BodyParser.urlencoded({ extended: true }));
 app.use('/static', express.static(path.resolve(__dirname, '../..', 'dist')), express.static(path.resolve(__dirname, '../..', 'public')));
 
+global.fetch = nodeFetch;
 
 var sendModelParams = multer.fields([
   { name: "modelName", maxCount: 1 },
@@ -32,15 +34,17 @@ app.get('/api/judge/judge/', judging_controller.judge_task_get);
 // Get next task
 app.get('/api/task/:id', (req, res) => {
   const {id} = req.params;
+  const pathPref = 'static/tests/task1/input';
+
   if (id % 2) {
     res.json({
       label: 'dog',
-      url: 'static/dog' + (Math.floor(id / 2) + 1) + '.jpg'
+      url: `${pathPref}/dog` + (Math.floor(id / 2) + 1) + '.jpg'
     });
   } else {
     res.json({
       label: 'cat',
-      url: 'static/cat' + (id / 2) + '.jpg'
+      url: `${pathPref}/cat` + (id / 2) + '.jpg'
     });
   }
 });
@@ -60,5 +64,7 @@ app.get('*', (req, res) => {
   });
 });
 
-const PORT = 3000;
-app.listen(PORT);
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}...`);
+});

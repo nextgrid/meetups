@@ -16,9 +16,9 @@ class TfAgent {
      */
     async loadModel(url, modelType) {
         if (modelType == 'keras') {
-            this.model = await tf.loadLayersModel(url)
+            this.model = await tf.loadLayersModel(url);  
         } else if (modelType == 'tf') {
-            this.model = await tf.loadGraphModel(url)
+            this.model = await tf.loadGraphModel(url);
         } else {
             throw new Error("Unsupported modelType. Should be 'keras' or 'tf'.");
         }
