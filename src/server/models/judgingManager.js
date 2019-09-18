@@ -36,15 +36,13 @@ class JudgingManager {
             });
 
         for (var desc of descriptions) {
-            const agent = new TfAgent(desc.accountId);
+            const agent = new TfAgent(desc.accountId, desc.modelName);
             await agent.loadModel(repo.get_file_url(desc.modelName), 'keras')
-                .then(() => {
-                    this.agents.push(agent);
-                })
                 .catch(err => {
-                    console.error(`Error while loading model named '${desc.modelName}'`, err);
-                }
-            );
+                    console.error(`Error while loading '${desc.modelName}'.`, err);
+                });
+
+            this.agents.push(agent);
         }
     }
 
@@ -105,7 +103,7 @@ class JudgingManager {
             testUrl: test.url,
             res: this.agents.map((agent) => ({
                 accountId: agent.modelAuthorId,
-                res: agent.predict(test.data).dataSync()
+                ...agent.predict(test.data)
             }))
         }));
     }

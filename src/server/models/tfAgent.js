@@ -4,8 +4,9 @@ const tf = require('@tensorflow/tfjs-node');
  *   Wraps tfjs model loading and prediction.
  */
 class TfAgent {
-    constructor(modelAuthorId) {
+    constructor(modelAuthorId, modelName) {
         this.modelAuthorId = modelAuthorId;
+        this.modelName = modelName || "unk_name";
         this.model = null;
     }
 
@@ -25,10 +26,21 @@ class TfAgent {
     }
 
     predict(example) {
-        if (this.model == null)
-            throw new Error("Model is null. Please use 'loadModel' for initializing model.");
+        const errRet = { status: "err", res: {} };
+        const modelName = this.modelName || "";
 
-        return this.model.predict(example);
+        if (this.model == null) {
+            return errRet;
+        }
+
+        try {
+            const res = this.model.predict(example).dataSync();
+            return { status: "ok", res }
+        }
+        catch (err) {
+            console.error(`Error while prediction on ${modelName}.`, err);
+            return errRet;
+        }
     }
 }
 
