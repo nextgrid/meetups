@@ -60,10 +60,10 @@ exports.add_file = async function(file, destFileName) {
         .end(await file.buffer());
 }
 
-exports.add_last_model_desc = function(accountId, taskId, modelName) {
+exports.add_last_model_desc = async function(accountId, taskId, modelName) {
     const docName = `acc${accountId}-task${taskId}`;
 
-    db.collection("last_models")
+    await db.collection("last_models")
         .doc(docName)
         .set({
             accountId,
@@ -87,6 +87,24 @@ exports.get_last_models_desc_by_task = async function(taskId) {
         .catch(function(error) {
             console.error("Error getting models: ", error);
         });
+}
+
+exports.get_account_id_from_auth_code = async function(code) {
+    return await db.collection("accounts")
+        .where("code", "==", code)
+        .limit(1)
+        .get()
+        .then(snapshot => {
+            const ids = snapshot.docs.map(doc => doc.data().accountId);
+
+            if (ids.length == 0) {
+                return null;
+            }
+            return ids[0];
+        })
+        .catch(function(error) {
+            console.log("Error while getting accountId from auth code")
+        })
 }
 
 exports.get_file = async function(fileName) {
