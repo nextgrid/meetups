@@ -181,7 +181,7 @@ class App extends React.Component {
 
     return (
       <ThemeProvider theme={theme}>
-        {round == 0
+        {round === 0
         ? (
           <div style={{
             display: 'flex', 
@@ -194,7 +194,6 @@ class App extends React.Component {
               onStart={this.goToNextRound}
             />
           </div>
-
         )
         : (() => {
           const { url, label, percentiles, points, diff } = answers[round - 1];
