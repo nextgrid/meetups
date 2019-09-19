@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import axios from 'axios';
 import './App.scss';
 import { makeStyles } from '@material-ui/core/styles';
@@ -50,7 +51,6 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-/* Props: goToNextRound */
 function Round(props) {
   const classes = useStyles();
 
@@ -115,6 +115,10 @@ function Round(props) {
     </div>
   )
 }
+
+Round.propTypes = {
+  goToNextRound: PropTypes.func,
+};
 
 class App extends React.Component {
   state = {

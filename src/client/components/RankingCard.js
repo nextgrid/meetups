@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import CardContent from '@material-ui/core/CardContent';
@@ -23,7 +24,6 @@ const getBadge = (result) => {
     return "🌑🌑🌒";
 };
 
-/* Props: round, results = {team, percentage} */
 function Ranking(props) {
     return (
         <Card style={props.style}>
@@ -58,5 +58,13 @@ function Ranking(props) {
         </Card>
     );
 }
+
+Ranking.propTypes = {
+    round: PropTypes.number,
+    results: PropTypes.arrayOf(PropTypes.shape({
+        team: PropTypes.string,
+        percentage: PropTypes.number,
+    })),
+};
 
 export default Ranking;

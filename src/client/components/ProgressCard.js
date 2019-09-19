@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
@@ -20,7 +21,6 @@ const useStyles = makeStyles(theme => ({
     }
   }));
 
-/* Props: onStart, isDone */
 function ProgressCard(props) {
     const classes = useStyles();
     return (
@@ -84,5 +84,10 @@ function ProgressCard(props) {
         </Card>
     )
 }
+
+ProgressCard.propTypes = {
+    onStart: PropTypes.func,
+    isDone: PropTypes.bool,
+};
 
 export default ProgressCard;

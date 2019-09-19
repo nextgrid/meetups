@@ -1,13 +1,13 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 const styles = {
     header: {
         color: "#FFFFFF",
         fontSize: 40
     }
-}
+};
 
-/* Props: part */
 function Header(props) {
     return (
       <div style={styles.header}>
@@ -40,6 +40,10 @@ function Header(props) {
         }}> Part {props.part}</p>
       </div>
     );
-  }
+}
 
-  export default Header;
+Header.propTypes = {
+    part: PropTypes.number,
+};
+
+export default Header;
