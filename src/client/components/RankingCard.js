@@ -9,6 +9,7 @@ import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
+import { TrendingDown, TrendingUp, TrendingFlat } from '@material-ui/icons';
 
 const getBadge = (result) => {
     if (result > 90.0) return "🌕🌕🌕";
@@ -23,6 +24,13 @@ const getBadge = (result) => {
 
     return "🌑🌑🌒";
 };
+
+const getTrend = (diff) => {
+    if (diff > 0) return (<TrendingUp style={{ color: 'green' }} />);
+    if (diff === 0) return (<TrendingFlat style={{ color: 'yellow' }} />);
+
+    return (<TrendingDown style={{ color: 'red' }} />);
+}
 
 function Ranking(props) {
     return (
@@ -40,16 +48,24 @@ function Ranking(props) {
                     <TableHead>
                         <TableRow>
                             <TableCell>#</TableCell>
-                            <TableCell align="left">Team</TableCell>
-                            <TableCell align="right">Percentage</TableCell>
+                            <TableCell align="center">Team</TableCell>
+                            <TableCell align="center">Result</TableCell>
+                            <TableCell align="center">Total score</TableCell>
+                            <TableCell align="center">Rank</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {props.results.map((row, index) => (
                             <TableRow key={index}>
                                 <TableCell component="th" scope="row">{index + 1}</TableCell>
-                                <TableCell align="left">{row.team}</TableCell>
-                                <TableCell align="right">{`${getBadge(row.percentage)} ${row.percentage}%`}</TableCell>
+                                <TableCell align="center">{row.team}</TableCell>
+                                <TableCell align="center">
+                                { row.status
+                                    ? `${getBadge(row.percentage)} ${row.percentage}%`
+                                    : `💀`
+                                }</TableCell>
+                                <TableCell align="center">{row.score}</TableCell>
+                                <TableCell align="center">{`${row.rank} (`}{getTrend(row.diff)}{` ${Math.abs(row.diff)})`}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>

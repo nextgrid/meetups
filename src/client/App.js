@@ -59,8 +59,8 @@ function Round(props) {
       <div 
         className="row"
         style={{
-          marginLeft: "17%",
-          marginRight: "17%",
+          marginLeft: "9%",
+          marginRight: "9%",
           paddingTop: "2%"
         }}>
         <Header style={classes.header} part={1}/>
@@ -73,7 +73,7 @@ function Round(props) {
           justifyContent: 'center',
         }}
       >
-        <div className="col-4">
+        <div className="col-5">
           <RankingCard 
             className={classes.root} 
             style={{
@@ -83,7 +83,7 @@ function Round(props) {
             results={props.results}
           />            
         </div>
-        <div className="col-4">
+        <div className="col-5">
           <TestCard 
           style={{
             height: 600
@@ -91,17 +91,6 @@ function Round(props) {
             src={props.src}
             title={props.title}
             subheader={props.subheader}/>
-        </div>
-        <div className="col-4">
-          <StandingsCard
-              className={classes.root}
-              style={{
-                height: 600
-              }}
-              round={props.round}
-              points={props.points}
-              diff={props.diff}
-          />
         </div>
       </div>
       <div 
@@ -135,12 +124,9 @@ Round.propTypes = {
   results: PropTypes.arrayOf(PropTypes.shape({
     team: PropTypes.string,
     percentage: PropTypes.number,
+    score: PropTypes.number,
+    diff: PropTypes.number,
   })),
-  points: PropTypes.arrayOf(PropTypes.shape({
-    id: PropTypes.string,
-    num: PropTypes.number,
-  })),
-  diff: PropTypes.objectOf(PropTypes.number),
   goToNextRound: PropTypes.func,
 };
 
@@ -157,45 +143,57 @@ class App extends React.Component {
   getAnswers = (taskId) => {
     axios.get(`/api/judge/judge?taskId=${taskId}`)
       .then(({data}) => data)
-      .then(answers => {
-        answers = answers.map(({testUrl, res}) => {
+      .then(rounds => {
+        this.setState({ rounds: rounds.map(({testUrl, res}) => {
           const label = testUrl.match(/(\w{3})\d\.jpg/)[1];
-          const percentiles = res.map(({accountId, res: {'0': cat, '1': dog}}) => ({
-            id: accountId,
-            result: label === 'cat' ? cat : dog,
-          })).sort((a, b) => a.result - b.result);
-          const points = percentiles.reduce((acc, {id}, i) => Object.assign(acc, {[id]: i}), {});
-
+          const results = res
+            .map(({
+              accountId, 
+              status,
+              res: { '0': cat, '1': dog }
+            }) => ({
+              id: accountId,
+              status: status === 'ok',
+              result: status === 'ok'
+                ? label === 'cat' ? cat : dog
+                : 0
+            }))
+            .sort((a, b) => a.result - b.result) // Ascending by results
+            .map((result, index) => ({
+              ...result,
+              rankByResult: index + 1,
+            }))
+            .sort((a, b) => b.id - a.id) // Descending by group IDs
           return {
             url: testUrl,
             label,
-            percentiles,
-            points,
+            results,
           };
-        });
-        answers = answers.map((answer, i) => {
-          if (i > 0) {
-            answers[i - 1].points.forEach(({id, num}) => {
-              answer.points[id] += num;
-            });
+        }).map(({ url, label, results }, index, rounds) => {
+          return {
+            url,
+            label,
+            results: results
+              .map((result, resultIndex) => ({
+                ...result,
+                score: rounds
+                  .slice(0, index + 1)    
+                  .map(round => round.results[resultIndex].rankByResult)
+                  .reduce((prev, cur) => prev + cur),
+                diff: result.rankByResult - (
+                  index > 0
+                  ? rounds[index - 1].results[resultIndex].rankByResult
+                  : 0
+                )
+              }))
+              .sort((a, b) => b.score - a.score)
+              .map((result, resultIndex) => ({
+                ...result,
+                rank: resultIndex + 1
+              }))
+              .sort((a, b) => b.result - a.result)
           }
-          answer.points = Object.entries(answer.points).map(([id, num]) => ({id, num}))
-            .sort((a, b) => a.num - b.num);
-
-          answer.diff = (i > 0)
-            ? answer.points.reduce((acc, {id}, pos) =>
-              Object.assign(acc, {
-                [id]: pos - answers[i - 1].points.findIndex(prev => prev.id === id)
-              }), {}
-            )
-            : answer.points.reduce((acc, {id}) =>
-              Object.assign(acc, {[id]: 0}), {}
-            );
-
-          return answer;
-        });
-
-        this.setState({answers});
+        })});
       })
       .catch((error) => console.error(error));
   };
@@ -205,7 +203,7 @@ class App extends React.Component {
   };
 
   render() {
-    const { round, answers } = this.state;
+    const { round, rounds } = this.state;
 
     return (
       <ThemeProvider theme={theme}>
@@ -218,30 +216,29 @@ class App extends React.Component {
             paddingTop: "15%"
           }}>
             <ProgressCard 
-              isDone={!!answers} 
+              isDone={!!rounds} 
               onStart={this.goToNextRound}
             />
           </div>
         )
         : (() => {
-          const { url, label, percentiles, points, diff } = answers[round - 1];
-          percentiles.reverse();
-          points.reverse();
-
+          const { url, label, results } = rounds[round - 1];
           return (
             <Round
               title={label}
-              subheader="TBA"
+              subheader={url.substring(url.lastIndexOf('/') + 1)}
               src={url}
               round={round}
               results={
-                percentiles.map(({ id, result }) => ({
+                results.map(({ id, result, status, score, diff, rank }) => ({
                   team: `Team ${id}`,
-                  percentage: Math.floor(result * 99 + 1)
+                  status,
+                  percentage: Math.floor(result * 99 + 1),
+                  score,
+                  diff,
+                  rank
                 }))
               }
-              points={points}
-              diff={diff}
               goToNextRound={this.goToNextRound}
             />
           );
