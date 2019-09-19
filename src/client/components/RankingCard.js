@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import CardContent from '@material-ui/core/CardContent';
+import Fade from '@material-ui/core/Fade';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -32,47 +33,49 @@ const getTrend = (diff) => {
     return (<TrendingDown style={{ color: 'red' }} />);
 }
 
-function Ranking(props) {
-    return (
-        <Card style={props.style}>
-            <CardHeader
-                title={
-                    <Typography gutterBottom variant="h5" component="h2">
-                        Round {props.round}
-                    </Typography>
-                }
-                subheader="Ranking"
-            />
-            <CardContent>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>#</TableCell>
-                            <TableCell align="center">Team</TableCell>
-                            <TableCell align="center">Result</TableCell>
-                            <TableCell align="center">Total score</TableCell>
-                            <TableCell align="center">Rank</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {props.results.map((row, index) => (
-                            <TableRow key={index}>
-                                <TableCell component="th" scope="row">{index + 1}</TableCell>
-                                <TableCell align="center">{row.team}</TableCell>
-                                <TableCell align="center">
-                                { row.status
-                                    ? `${getBadge(row.percentage)} ${row.percentage}%`
-                                    : `💀`
-                                }</TableCell>
-                                <TableCell align="center">{row.score}</TableCell>
-                                <TableCell align="center">{`${row.rank} (`}{getTrend(row.diff)}{` ${Math.abs(row.diff)})`}</TableCell>
+class Ranking extends React.Component {
+    render() {
+        return (
+            <Card style={this.props.style}>
+                <CardHeader
+                    title={
+                        <Typography gutterBottom variant="h5" component="h2">
+                            Round {this.props.round}
+                        </Typography>
+                    }
+                    subheader="Ranking"
+                />
+                <CardContent>
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>#</TableCell>
+                                <TableCell align="center">Team</TableCell>
+                                <TableCell align="center">Result</TableCell>
+                                <TableCell align="center">Total score</TableCell>
+                                <TableCell align="center">Rank</TableCell>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </CardContent>
-        </Card>
-    );
+                        </TableHead>
+                        <TableBody>
+                            {this.props.results.map((row, index) => (
+                                <TableRow key={index}>
+                                    <TableCell component="th" scope="row">{index + 1}</TableCell>
+                                    <TableCell align="center">{row.team}</TableCell>
+                                    <TableCell align="center">
+                                    { row.status
+                                        ? `${getBadge(row.percentage)} ${row.percentage}%`
+                                        : `💀`
+                                    }</TableCell>
+                                    <TableCell align="center">{row.score}</TableCell>
+                                    <TableCell align="center">{`${row.rank} (`}{getTrend(row.diff)}{` ${Math.abs(row.diff)})`}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+        );
+    }
 }
 
 Ranking.propTypes = {
@@ -80,6 +83,9 @@ Ranking.propTypes = {
     results: PropTypes.arrayOf(PropTypes.shape({
         team: PropTypes.string,
         percentage: PropTypes.number,
+        stauts: PropTypes.string,
+        score: PropTypes.number,
+        diff: PropTypes.number,
     })),
 };
 
