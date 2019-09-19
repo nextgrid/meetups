@@ -8,6 +8,7 @@ import Header from './components/Header.js';
 import RankingCard from './components/RankingCard.js';
 import TestCard from './components/TestCard.js';
 import ProgressCard from './components/ProgressCard.js';
+import StandingsCard from "./components/StandingsCard";
 
 import SendIcon from '@material-ui/icons/Send';
 import Button from '@material-ui/core/Button';
@@ -34,7 +35,6 @@ const useStyles = makeStyles(theme => ({
   header: {
     color: "#FFFFFF",
     fontSize: 40,
-    marginLeft: 300,
   },
   leftPanel: {
     margin: 5,
@@ -92,6 +92,17 @@ function Round(props) {
             title={props.title}
             subheader={props.subheader}/>
         </div>
+        <div className="col-4">
+          <StandingsCard
+              className={classes.root}
+              style={{
+                height: 600
+              }}
+              round={props.round}
+              points={props.points}
+              diff={props.diff}
+          />
+        </div>
       </div>
       <div 
         className="row" 
@@ -117,6 +128,19 @@ function Round(props) {
 }
 
 Round.propTypes = {
+  title: PropTypes.string,
+  subheader: PropTypes.string,
+  src: PropTypes.string,
+  round: PropTypes.number,
+  results: PropTypes.arrayOf(PropTypes.shape({
+    team: PropTypes.string,
+    percentage: PropTypes.number,
+  })),
+  points: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string,
+    num: PropTypes.number,
+  })),
+  diff: PropTypes.objectOf(PropTypes.number),
   goToNextRound: PropTypes.func,
 };
 
@@ -161,7 +185,7 @@ class App extends React.Component {
           answer.diff = (i > 0)
             ? answer.points.reduce((acc, {id}, pos) =>
               Object.assign(acc, {
-                [id]: answers[i - 1].points.findIndex(prev => prev.id === id) - pos
+                [id]: pos - answers[i - 1].points.findIndex(prev => prev.id === id)
               }), {}
             )
             : answer.points.reduce((acc, {id}) =>
@@ -202,9 +226,10 @@ class App extends React.Component {
         : (() => {
           const { url, label, percentiles, points, diff } = answers[round - 1];
           percentiles.reverse();
+          points.reverse();
 
           return (
-            <Round 
+            <Round
               title={label}
               subheader="TBA"
               src={url}
@@ -215,6 +240,8 @@ class App extends React.Component {
                   percentage: Math.floor(result * 99 + 1)
                 }))
               }
+              points={points}
+              diff={diff}
               goToNextRound={this.goToNextRound}
             />
           );
