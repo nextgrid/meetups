@@ -124,6 +124,7 @@ Round.propTypes = {
   results: PropTypes.arrayOf(PropTypes.shape({
     team: PropTypes.string,
     percentage: PropTypes.number,
+    stauts: PropTypes.string,
     score: PropTypes.number,
     diff: PropTypes.number,
   })),
@@ -205,47 +206,81 @@ class App extends React.Component {
   render() {
     const { round, rounds } = this.state;
 
+    const wrapWithTheme = (jsx) => {
+      return (
+        <ThemeProvider theme={theme}>
+          { jsx }
+        </ThemeProvider>
+      );
+    }
+
+    if (round === 0) {
+      return wrapWithTheme(this._getHello());
+    }
+    if (round < rounds.length) {
+      return wrapWithTheme(this._getRound());
+    }
+
+    return wrapWithTheme(this._getBye());
+  }
+
+  _getHello() {
     return (
-      <ThemeProvider theme={theme}>
-        {round === 0
-        ? (
-          <div style={{
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center', 
-            paddingTop: "15%"
-          }}>
-            <ProgressCard 
-              isDone={!!rounds} 
-              onStart={this.goToNextRound}
-            />
-          </div>
-        )
-        : (() => {
-          const { url, label, results } = rounds[round - 1];
-          return (
-            <Round
-              title={label}
-              subheader={url.substring(url.lastIndexOf('/') + 1)}
-              src={url}
-              round={round}
-              results={
-                results.map(({ id, result, status, score, diff, rank }) => ({
-                  team: `Team ${id}`,
-                  status,
-                  percentage: Math.floor(result * 99 + 1),
-                  score,
-                  diff,
-                  rank
-                }))
-              }
-              goToNextRound={this.goToNextRound}
-            />
-          );
-        })()
+      <div style={{
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        paddingTop: "15%",
+        paddingBottom: "15%"
+      }}>
+        <ProgressCard 
+          isDone={!!this.state.rounds} 
+          onStart={this.goToNextRound}
+        />
+      </div>
+    );
+  }
+
+  _getRound() {
+    const { round, rounds } = this.state;
+    const { url, label, results } = rounds[round - 1];
+
+    return (
+      <Round
+        title={label}
+        subheader={url.substring(url.lastIndexOf('/') + 1)}
+        src={url}
+        round={round}
+        results={
+          results.map(({ id, result, status, score, diff, rank }) => ({
+            team: `Team ${id}`,
+            status,
+            percentage: Math.floor(result * 99 + 1),
+            score,
+            diff,
+            rank
+          }))
         }
-      </ThemeProvider>
-    )
+        goToNextRound={this.goToNextRound}
+      />
+    );
+  }
+
+  _getBye() {
+      const { rounds } = this.state;
+      const { results } = rounds[rounds.length - 1];
+
+      return (
+        <div style={{
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          paddingTop: "10%",
+          paddingBottom: "15%"
+        }}>
+          <StandingsCard results={results}/>
+        </div>
+      );
   }
 }
 

@@ -18,10 +18,9 @@ function StandingsCard(props) {
             <CardHeader
                 title={
                     <Typography gutterBottom variant="h5" component="h2">
-                        Round {props.round}
+                        Summary
                     </Typography>
                 }
-                subheader="Standings"
             />
             <CardContent>
                 <Table>
@@ -29,23 +28,15 @@ function StandingsCard(props) {
                         <TableRow>
                             <TableCell>#</TableCell>
                             <TableCell align="left">Team</TableCell>
-                            <TableCell align="center">Points</TableCell>
-                            <TableCell align="left">Difference</TableCell>
+                            <TableCell align="center">Score</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {props.points.map(({ id, num }, index) => (
+                        {props.results.map(({ id, score }, index) => (
                             <TableRow key={index}>
                                 <TableCell component="th" scope="row">{index + 1}</TableCell>
                                 <TableCell align="left">Team {id}</TableCell>
-                                <TableCell align="center">{num}</TableCell>
-                                <TableCell align="left">
-                                    {props.diff[id] > 0 && <TrendingUp style={{ color: 'green' }} />}
-                                    {props.diff[id] === 0 && <TrendingFlat style={{ color: 'yellow' }} />}
-                                    {props.diff[id] < 0 && <TrendingDown style={{ color: 'red' }} />}
-                                    {' '}
-                                    {Math.abs(props.diff[id])}
-                                </TableCell>
+                                <TableCell align="center">{score}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
@@ -57,11 +48,13 @@ function StandingsCard(props) {
 
 StandingsCard.propTypes = {
     round: PropTypes.number,
-    points: PropTypes.arrayOf(PropTypes.shape({
-        id: PropTypes.string,
-        num: PropTypes.number,
+    results: PropTypes.arrayOf(PropTypes.shape({
+        id: PropTypes.number,
+        percentage: PropTypes.number,
+        stauts: PropTypes.string,
+        score: PropTypes.number,
+        diff: PropTypes.number,
     })),
-    diff: PropTypes.objectOf(PropTypes.number),
 };
 
 export default StandingsCard;
