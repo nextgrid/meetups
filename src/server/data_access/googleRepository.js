@@ -102,6 +102,21 @@ exports.get_account_id_from_auth_code = async function(code) {
         });
 }
 
+exports.get_account = async function(accountId) {
+    return await db.collection("accounts")
+        .where("accountId", "==", accountId)
+        .limit(1)
+        .get()
+        .then(snapshot => {
+            const accounts = snapshot.docs.map(doc => doc.data());
+
+            if (accounts.length == 0) {
+                return null;
+            }
+            return accounts[0];
+        });
+}
+
 exports.get_file = async function(fileName) {
     const file = bucket.file(fileName);
 

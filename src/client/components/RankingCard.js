@@ -60,7 +60,7 @@ class Ranking extends React.Component {
                             {this.props.results.map((row, index) => (
                                 <TableRow key={index}>
                                     <TableCell component="th" scope="row">{index + 1}</TableCell>
-                                    <TableCell align="center">{row.team}</TableCell>
+                                    <TableCell align="center">{row.teamName}</TableCell>
                                     <TableCell align="center">
                                     { row.status
                                         ? `${getBadge(row.percentage)} ${row.percentage}%`
@@ -81,7 +81,7 @@ class Ranking extends React.Component {
 Ranking.propTypes = {
     round: PropTypes.number,
     results: PropTypes.arrayOf(PropTypes.shape({
-        team: PropTypes.string,
+        teamName: PropTypes.string,
         percentage: PropTypes.number,
         status: PropTypes.bool,
         score: PropTypes.number,

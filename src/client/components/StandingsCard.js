@@ -93,10 +93,10 @@ class StandingsCard extends React.Component {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {results.map(({id, score}, index) => (
+                            {results.map(({ teamName, score }, index) => (
                                 <TableRow key={index}>
                                     <TableCell component="th" scope="row">{index + 1}</TableCell>
-                                    <TableCell align="left">Team {id}</TableCell>
+                                    <TableCell align="left">{teamName}</TableCell>
                                     <TableCell align="center">{score}</TableCell>
                                 </TableRow>
                             ))}
@@ -111,7 +111,7 @@ class StandingsCard extends React.Component {
 StandingsCard.propTypes = {
     round: PropTypes.number,
     results: PropTypes.arrayOf(PropTypes.shape({
-        id: PropTypes.number,
+        teamName: PropTypes.number,
         percentage: PropTypes.number,
         status: PropTypes.bool,
         score: PropTypes.number,

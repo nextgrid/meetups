@@ -164,10 +164,12 @@ class App extends React.Component {
           const results = res
             .map(({
               accountId, 
+              accountName,
               status,
               res: { '0': cat, '1': dog }
             }) => ({
               id: accountId,
+              teamName: accountName,
               status: status === 'ok',
               result: status === 'ok'
                 ? label === 'cat' ? cat : dog
@@ -270,8 +272,8 @@ class App extends React.Component {
         src={url}
         round={round}
         results={
-          results.map(({ id, result, status, score, diff, rank }) => ({
-            team: `Team ${id}`,
+          results.map(({ teamName, result, status, score, diff, rank }) => ({
+            teamName,
             status,
             percentage: Math.floor(result * 99 + 1),
             score,
