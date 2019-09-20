@@ -56,7 +56,9 @@ function Round(props) {
   const classes = useStyles();
 
   return (
-    <div>
+    <div style={{
+      overflowX: 'hidden'
+    }}>
       <div 
         className="row"
         style={{
