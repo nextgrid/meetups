@@ -234,7 +234,7 @@ class App extends React.Component {
     if (round === 0) {
       return wrapWithTheme(this._getHello());
     }
-    if (round < rounds.length) {
+    if (round <= rounds.length) {
       return wrapWithTheme(this._getRound());
     }
 
