@@ -60,14 +60,29 @@ function ProgressCard(props) {
             >
                 {props.isDone
                 ? (
-                    <Button 
-                        variant="outlined" 
-                        size="large" 
-                        color="primary"
-                        onClick={props.onStart}
+                    <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                    }}
                     >
-                        Start
-                    </Button>
+                        <Button
+                            variant="outlined"
+                            size="large"
+                            color="primary"
+                            onClick={props.onStart}
+                        >
+                            Start
+                        </Button>
+                        <div style={{height: '30px'}} />
+                        <Button
+                            variant="outlined"
+                            size="large"
+                            color="primary"
+                            onClick={props.onRefresh}
+                        >
+                            Refresh
+                        </Button>
+                    </div>
                 )
                 : (
                     <div>
@@ -87,6 +102,7 @@ function ProgressCard(props) {
 
 ProgressCard.propTypes = {
     onStart: PropTypes.func,
+    onRefresh: PropTypes.func,
     isDone: PropTypes.bool,
 };
 

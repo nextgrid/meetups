@@ -83,7 +83,7 @@ Ranking.propTypes = {
     results: PropTypes.arrayOf(PropTypes.shape({
         team: PropTypes.string,
         percentage: PropTypes.number,
-        stauts: PropTypes.string,
+        status: PropTypes.bool,
         score: PropTypes.number,
         diff: PropTypes.number,
     })),
