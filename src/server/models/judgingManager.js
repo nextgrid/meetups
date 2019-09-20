@@ -32,11 +32,20 @@ class JudgingManager {
         const descriptions = await repo
             .get_last_models_desc_by_task(taskId)
             .catch(err => {
-                console.error("Error models metadata.", err);
+                console.error("Error while fetching models metadata.", err);
             });
 
         for (var desc of descriptions) {
-            const agent = new TfAgent(desc.accountId, desc.modelName);
+            const acc = await repo.get_account(desc.accountId)
+                .catch(err => {
+                    console.error("Error while fetching user.", err);
+                });
+
+            const agent = new TfAgent({
+                accountId: acc.accountId || -1, 
+                accountName: acc.name || ""
+            }, desc.modelName);
+
             await agent.loadModel(repo.get_file_url(desc.modelName), 'keras')
                 .catch(err => {
                     console.error(`Error while loading '${desc.modelName}'.`, err);
@@ -102,7 +111,7 @@ class JudgingManager {
         return this.testInputs.map((test) => ({
             testUrl: test.url,
             res: this.agents.map((agent) => ({
-                accountId: agent.modelAuthorId,
+                ...agent.author,
                 ...agent.predict(test.data)
             }))
         }));

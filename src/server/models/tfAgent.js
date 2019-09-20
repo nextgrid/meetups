@@ -4,9 +4,12 @@ const tf = require('@tensorflow/tfjs-node');
  *   Wraps tfjs model loading and prediction.
  */
 class TfAgent {
-    constructor(modelAuthorId, modelName) {
-        this.modelAuthorId = modelAuthorId;
-        this.modelName = modelName || "unk_name";
+    constructor(author, modelName) {
+        this.author = author || {
+            accountId: -1,
+            accountName: ""
+        };
+        this.modelName = modelName;
         this.model = null;
     }
 
