@@ -13,24 +13,32 @@ import Typography from '@material-ui/core/Typography';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { SUSPENSE_SECONDS } from '../config';
 
-const styles = {
+const styles = { };
 
-};
+const getLabel = (second) => {
+    if (second >= 5) return "Check FB 📱";
+    if (second >= 4) return "Send kisses 💋";
+    if (second >= 3) return "Fasten seatbelt 🛬";
+    if (second >= 2) return "Wipe sweat 💦";
+    if (second >= 1) return "Don't panic 😱";
+    
+    return "";
+}
 
 class StandingsCard extends React.Component {
     state = {
-        countdownSeconds: SUSPENSE_SECONDS,
+        countdownMsec: (SUSPENSE_SECONDS + 1) * 1000,
     };
 
     componentDidMount() {
         this.countdownFunction = setInterval(
-            () => this.setState({ countdownSeconds: this.state.countdownSeconds - 1 }),
-            1000,
+            () => this.setState({ countdownMsec: this.state.countdownMsec - 10 }),
+            10,
         );
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
-        if (prevState.countdownSeconds + this.state.countdownSeconds === 1) {
+        if (this.state.countdownMsec === 1000) {
             clearInterval(this.countdownFunction);
             new Audio('/static/winner.mp3').play();
         }
@@ -38,23 +46,28 @@ class StandingsCard extends React.Component {
 
     render() {
         const { classes } = this.props;
-        const { countdownSeconds } = this.state;
+        const { countdownMsec } = this.state;
 
-        if (countdownSeconds > 0) {
+        if (countdownMsec > 1000) {
             return (
                 <Card style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
+                    width: "40%",
+                    height: "45%",
                     justifyContent: 'center',
+                    textAlign: 'center',
+                    padding: 30
                 }}>
                     <CardHeader
                         title={
                             <Typography gutterBottom variant="h5" component="h2">
-                                Just { countdownSeconds } second
-                                { countdownSeconds === 1 ? '' : 's' }
-                                {' '} to go!
+                                Final results in { parseInt(countdownMsec / 1000) }!
                             </Typography>
+                        }
+                        subheader={
+                            <p style={{
+                                display: 'inline', 
+                                fontSize: 19
+                            }}> { getLabel(parseInt(countdownMsec / 1000)) }</p>
                         }
                     />
                     <CardContent style={{
@@ -63,8 +76,8 @@ class StandingsCard extends React.Component {
                         <CircularProgress
                             className={classes.progress}
                             variant="determinate"
-                            value={(5 - countdownSeconds) * 20}
-                            size={200}
+                            value={(5000 - countdownMsec) / 50 + 10}
+                            size={100}
                         />
                     </CardContent>
                 </Card>
@@ -87,7 +100,7 @@ class StandingsCard extends React.Component {
                     <Table>
                         <TableHead>
                             <TableRow>
-                                <TableCell>#</TableCell>
+                                <TableCell>Place</TableCell>
                                 <TableCell align="left">Team</TableCell>
                                 <TableCell align="center">Score</TableCell>
                             </TableRow>
@@ -111,7 +124,7 @@ class StandingsCard extends React.Component {
 StandingsCard.propTypes = {
     round: PropTypes.number,
     results: PropTypes.arrayOf(PropTypes.shape({
-        teamName: PropTypes.number,
+        teamName: PropTypes.string,
         percentage: PropTypes.number,
         status: PropTypes.bool,
         score: PropTypes.number,
