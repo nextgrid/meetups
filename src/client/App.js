@@ -181,7 +181,7 @@ class App extends React.Component {
             .sort((a, b) => a.result - b.result) // Ascending by results
             .map((result, index, array) => ({
               ...result,
-              rankByResult: Math.floor(result.result * 9999 + 1) / 100
+              rankByResult: Math.floor(result.result * 10000) / 100
             }))
             .sort((a, b) => b.id - a.id) // Descending by group IDs
           return {
@@ -282,8 +282,8 @@ class App extends React.Component {
             correct: label.toUpperCase() === (mostProbClass || '').toUpperCase(),
             result: (mostProbClass || '').toUpperCase(),
             acc: Math.max(
-              Math.floor(result * 9999 + 1) / 100, 
-              Math.floor(10000 - (result * 9999 + 1)) / 100
+              Math.floor(result * 10000) / 100, 
+              Math.floor(10000 - (result * 10000)) / 100
             ),
             score: roundScore,
             diff,
