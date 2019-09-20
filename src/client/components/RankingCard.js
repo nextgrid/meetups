@@ -49,25 +49,31 @@ class Ranking extends React.Component {
                     <Table>
                         <TableHead>
                             <TableRow>
-                                <TableCell>#</TableCell>
-                                <TableCell align="center">Team</TableCell>
+                                <TableCell align="left">Team</TableCell>
                                 <TableCell align="center">Result</TableCell>
-                                <TableCell align="center">Total score</TableCell>
-                                <TableCell align="center">Rank</TableCell>
+                                <TableCell align="center">Acc</TableCell>
+                                <TableCell align="center">Round score</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             {this.props.results.map((row, index) => (
                                 <TableRow key={index}>
-                                    <TableCell component="th" scope="row">{index + 1}</TableCell>
-                                    <TableCell align="center">{row.teamName}</TableCell>
-                                    <TableCell align="center">
+                                    <TableCell align="left">{row.teamName}</TableCell>
+                                    <TableCell 
+                                        align="center" 
+                                        style={{color: row.correct ? "#19ff85" : "#ff3c19" }}>
                                     { row.status
-                                        ? `${getBadge(row.percentage)} ${row.percentage}%`
+                                        ? `${row.result}`
+                                        : `💀`
+                                    }</TableCell>
+                                    <TableCell 
+                                        align="center" 
+                                        style={{color: row.correct ? "#19ff85" : "#ff3c19" }}>
+                                    { row.status
+                                        ? `${row.acc}%`
                                         : `💀`
                                     }</TableCell>
                                     <TableCell align="center">{row.score}</TableCell>
-                                    <TableCell align="center">{`${row.rank} (`}{getTrend(row.diff)}{` ${Math.abs(row.diff)})`}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
@@ -82,7 +88,9 @@ Ranking.propTypes = {
     round: PropTypes.number,
     results: PropTypes.arrayOf(PropTypes.shape({
         teamName: PropTypes.string,
-        percentage: PropTypes.number,
+        correct: PropTypes.bool,
+        result: PropTypes.string,
+        acc: PropTypes.number,
         status: PropTypes.bool,
         score: PropTypes.number,
         diff: PropTypes.number,

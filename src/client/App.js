@@ -173,7 +173,10 @@ class App extends React.Component {
               status: status === 'ok',
               result: status === 'ok'
                 ? label === 'cat' ? cat : dog
-                : 0
+                : null,
+              mostProbClass: status === 'ok'
+               ? cat > dog ? 'cat' : 'dog'
+               : null
             }))
             .sort((a, b) => a.result - b.result) // Ascending by results
             .map((result, index) => ({
@@ -197,6 +200,7 @@ class App extends React.Component {
                   .slice(0, index + 1)    
                   .map(round => round.results[resultIndex].rankByResult)
                   .reduce((prev, cur) => prev + cur),
+                roundScore: result.rankByResult,
                 diff: result.rankByResult - (
                   index > 0
                   ? rounds[index - 1].results[resultIndex].rankByResult
@@ -208,7 +212,7 @@ class App extends React.Component {
                 ...result,
                 rank: resultIndex + 1
               }))
-              .sort((a, b) => b.result - a.result)
+              .sort((a, b) => a.teamName.localeCompare(b.teamName))
           }
         });
 
@@ -272,11 +276,13 @@ class App extends React.Component {
         src={url}
         round={round}
         results={
-          results.map(({ teamName, result, status, score, diff, rank }) => ({
+          results.map(({ teamName, result, mostProbClass, status, roundScore, diff, rank }) => ({
             teamName,
             status,
-            percentage: Math.floor(result * 99 + 1),
-            score,
+            correct: label.toUpperCase() === (mostProbClass || '').toUpperCase(),
+            result: (mostProbClass || '').toUpperCase(),
+            acc: Math.max(Math.floor(result * 99 + 1), Math.floor(100 - (result * 99 + 1))),
+            score: roundScore,
             diff,
             rank
           }))
