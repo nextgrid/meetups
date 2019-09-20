@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios';
+import { TASK_ID } from './config';
 import './App.scss';
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -137,15 +138,26 @@ class App extends React.Component {
   };
 
   componentDidMount() {
-    this.getAnswers(1);
+    this.getAnswers(TASK_ID);
   }
+
+  refreshRounds = () => {
+    localStorage.removeItem('rounds');
+    this.setState({ rounds: undefined }, () => this.getAnswers(TASK_ID));
+  };
 
   // Get answers (parse "/judge/judge" response)
   getAnswers = (taskId) => {
+    const rounds = localStorage.getItem('rounds');
+    if (rounds) {
+      this.setState({ rounds: JSON.parse(rounds) });
+      return;
+    }
+
     axios.get(`/api/judge/judge?taskId=${taskId}`)
       .then(({data}) => data)
       .then(rounds => {
-        this.setState({ rounds: rounds.map(({testUrl, res}) => {
+        rounds = rounds.map(({testUrl, res}) => {
           const label = testUrl.match(/(\w{3})\d\.jpg/)[1];
           const results = res
             .map(({
@@ -194,7 +206,10 @@ class App extends React.Component {
               }))
               .sort((a, b) => b.result - a.result)
           }
-        })});
+        });
+
+        localStorage.setItem('rounds', JSON.stringify(rounds));
+        this.setState({ rounds });
       })
       .catch((error) => console.error(error));
   };
@@ -236,6 +251,7 @@ class App extends React.Component {
         <ProgressCard 
           isDone={!!this.state.rounds} 
           onStart={this.goToNextRound}
+          onRefresh={this.refreshRounds}
         />
       </div>
     );
