@@ -19,7 +19,7 @@ const useStyles = makeStyles(theme => ({
         fontWeight: "bold", 
         fontFamily: 'Consolas'
     }
-  }));
+}));
 
 function ProgressCard(props) {
     const classes = useStyles();

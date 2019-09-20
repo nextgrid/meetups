@@ -1,8 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { makeStyles } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import CardContent from '@material-ui/core/CardContent';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import Fade from '@material-ui/core/Fade';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -34,6 +36,31 @@ const getTrend = (diff) => {
 }
 
 class Ranking extends React.Component {
+    state = {
+        loading: true
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if (this.props.round != prevProps.round) {
+            this._startLoading();
+        }
+    }
+
+    componentDidMount() {
+        this._startLoading();
+    }
+
+    _startLoading() {
+        this.setState({ loading: true });
+        const interval = setInterval(
+            () => {
+                this.setState({ loading: false });
+                clearInterval(interval);
+            },
+            2000,
+        );
+    }
+
     render() {
         return (
             <Card style={this.props.style}>
@@ -45,39 +72,57 @@ class Ranking extends React.Component {
                     }
                     subheader="Ranking"
                 />
-                <CardContent>
-                    <Table>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell align="left">Team</TableCell>
-                                <TableCell align="center">Result</TableCell>
-                                <TableCell align="center">Acc</TableCell>
-                                <TableCell align="center">Round score</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {this.props.results.map((row, index) => (
-                                <TableRow key={index}>
-                                    <TableCell align="left">{row.teamName}</TableCell>
-                                    <TableCell 
-                                        align="center" 
-                                        style={{color: row.correct ? "#19ff85" : "#ff3c19" }}>
-                                    { row.status
-                                        ? `${row.result}`
-                                        : `💀`
-                                    }</TableCell>
-                                    <TableCell 
-                                        align="center" 
-                                        style={{color: row.correct ? "#19ff85" : "#ff3c19" }}>
-                                    { row.status
-                                        ? `${row.acc}%`
-                                        : `💀`
-                                    }</TableCell>
-                                    <TableCell align="center">{row.score}</TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                <CardContent style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    textAlign: 'center',
+                    padding: 10
+                }}>
+                    {
+                        this.state.loading
+                        ? (
+                            <div>
+                                <CircularProgress style={{marginTop: 40}}/>
+                                <Typography gutterBottom variant="body1" style={{margin: 20}}>
+                                    Loading results...
+                                </Typography>
+                            </div>
+                        )
+                        : (
+                            <Table>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell align="left">Team</TableCell>
+                                        <TableCell align="center">Result</TableCell>
+                                        <TableCell align="center">Acc</TableCell>
+                                        <TableCell align="center">Round score</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {this.props.results.map((row, index) => (
+                                        <TableRow key={index}>
+                                            <TableCell align="left">{row.teamName}</TableCell>
+                                            <TableCell 
+                                                align="center" 
+                                                style={{color: row.correct ? "#19ff85" : "#ff3c19" }}>
+                                            { row.status
+                                                ? `${row.result}`
+                                                : `💀`
+                                            }</TableCell>
+                                            <TableCell 
+                                                align="center" 
+                                                style={{color: row.correct ? "#19ff85" : "#ff3c19" }}>
+                                            { row.status
+                                                ? `${row.acc}%`
+                                                : `💀`
+                                            }</TableCell>
+                                            <TableCell align="center">{row.score}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        )
+                    }
                 </CardContent>
             </Card>
         );
