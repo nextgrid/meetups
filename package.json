@@ -17,7 +17,7 @@
     "css-loader": "^3.2.0",
     "dotenv": "^8.1.0",
     "etl": "^0.6.6",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "file-loader": "^4.2.0",
     "firebase": "6.6.0",
     "html-loader": "^0.5.5",
